@@ -1,0 +1,11 @@
+{
+    "name":        "dialtime/model",
+    "homepage":    "http://dialtime.target-call.ru",
+    "description": "Dialtime Model",
+    "type":        "symfony-bundle",
+    "version":     "0.1.0",
+    "license":     "SEULA",
+    "authors":     [ { "name": "Alexander Mosyagin", "email": "fixnim@gmail.com", "role": "Developer" } ],
+    "autoload":    { "psr-4": { "Polonairs\\Dialtime\\ModelBundle\\": "" } },
+    "require":     { "php": ">=5.5.9" }
+}
