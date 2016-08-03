@@ -7,7 +7,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 
 /**
- * @ORM\Entity(repositoryClass="CommonBundle\Repository\MasterRepository")
+ * @ORM\Entity(repositoryClass="Polonairs\Dialtime\ModelBundle\Repository\MasterRepository")
  * @ORM\Table(name="masters")
  */
 class Master implements UserInterface, EquatableInterface
