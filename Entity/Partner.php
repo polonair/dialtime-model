@@ -7,7 +7,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 
 /**
- * @ORM\Entity(repositoryClass="CommonBundle\Repository\PartnerRepository")
+ * @ORM\Entity(repositoryClass="Polonairs\Dialtime\ModelBundle\Repository\PartnerRepository")
  * @ORM\Table(name="partners")
  */
 class Partner implements UserInterface, EquatableInterface

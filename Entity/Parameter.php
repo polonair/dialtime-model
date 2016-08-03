@@ -5,7 +5,7 @@ namespace Polonairs\Dialtime\ModelBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="CommonBundle\Repository\ParameterRepository")
+ * @ORM\Entity(repositoryClass="Polonairs\Dialtime\ModelBundle\Repository\ParameterRepository")
  * @ORM\Table(name="parameters")
  */
 class Parameter

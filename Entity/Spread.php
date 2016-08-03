@@ -5,7 +5,7 @@ namespace Polonairs\Dialtime\ModelBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="CommonBundle\Repository\SpreadRepository")
+ * @ORM\Entity(repositoryClass="Polonairs\Dialtime\ModelBundle\Repository\SpreadRepository")
  * @ORM\Table(name="spreads")
  */
 class Spread
