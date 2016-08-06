@@ -9,15 +9,21 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
-use Polonairs\Dialtime\ModelBundle\Service\UserService\UserService;
 use Polonairs\Dialtime\ModelBundle\Entity\Master;
 
 class MasterRepository extends EntityRepository implements UserProviderInterface, UserLoaderInterface
 {
+    private static function normalizeUsername($username)
+    {
+        if ($username === null) return null;
+        $phone = str_replace(["+", "-", "(", ")", " ", ".", "/", "\\", "*"], "", $username);
+        if (preg_match("#[78]?(9[0-9]{9})#", $phone, $matches)) return "7".$matches[1];
+        return $username;
+    }
     public function loadUserByUsername($username)
     {
         $em = $this->getEntityManager();
-        $normalized = UserService::normalizeUsername($username);
+        $normalized = MasterRepository::normalizeUsername($username);
         $query = $em->createQuery("
             SELECT master, user, userVersion
             FROM ModelBundle:Master master
