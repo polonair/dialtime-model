@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Auth
 {
 	const TYPE_REGISTRATION = "REGISTRATION";
+	const TYPE_LOGIN = "LOGIN";
 
 	/** 
 	 * @ORM\Column(type="integer")
