@@ -10,6 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class User
 {
+	const STATE_JUST_REGISTERED = "JUST_REGISTERED";
+	const STATE_ACTIVE = "ACTIVE";
 	/**
 	 * @ORM\Column(type="integer")
 	 * @ORM\Id
@@ -35,6 +37,8 @@ class User
 	public function getUsername() { return $this->actual->getUsername(); }
 	public function getPassword() { return $this->actual->getPassword(); }
 	public function getMainAccount() { return $this->actual->getMainAccount(); }
+	public function getRateAccount() { return $this->actual->getRateAccount(); }
+	public function getState() { return $this->actual->getState(); }
 
 	/* setters */
 	public function setUsername($username, User $author = null)
@@ -52,9 +56,19 @@ class User
 		$this->follow($author)->setMainAccount($value);
 		return $this;
 	}
+	public function setRateAccount(Account $value = null, User $author = null)
+	{
+		$this->follow($author)->setRateAccount($value);
+		return $this;		
+	}
 	public function setMainSchedule(Schedule $schedule = null, User $author = null)
 	{
 		$this->follow($author)->setMainSchedule($schedule);
+		return $this;
+	}
+	public function setState($state = null, User $author = null)
+	{
+		$this->follow($author)->setState($state);
 		return $this;
 	}
 

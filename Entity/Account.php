@@ -13,6 +13,7 @@ class Account
 	const STATE_ACTIVE = "ACTIVE";
 	
 	const CURRENCY_RUR = "RUR";
+	const CURRENCY_TCR = "TCR";
 
 	/** 
 	 * @ORM\Column(type="integer")

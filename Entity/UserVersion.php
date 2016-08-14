@@ -20,8 +20,12 @@ class UserVersion
 	private $username;
 	/** @ORM\Column(type="string") */
 	private $password;
+	/** @ORM\Column(type="string") */
+	private $state;
 	/** @ORM\ManyToOne(targetEntity="Account") */
 	private $main_account;
+	/** @ORM\ManyToOne(targetEntity="Account") */
+	private $rate_account;
 	/** @ORM\ManyToOne(targetEntity="Schedule") */
 	private $main_schedule;
 	/** @ORM\ManyToOne(targetEntity="User") */
@@ -38,10 +42,12 @@ class UserVersion
 	}
 
 	/* getters */
-	public function getId()	{		return $this->id;	}
-	public function getUsername()	{		return $this->username;	}
-	public function getPassword()	{		return $this->password;	}
-	public function getMainAccount()	{		return $this->main_account;	}
+	public function getId()	{ return $this->id;	}
+	public function getUsername() { return $this->username;	}
+	public function getPassword() { return $this->password;	}
+	public function getMainAccount() { return $this->main_account;	}
+	public function getRateAccount() { return $this->rate_account;	}
+	public function getState() { return $this->state;	}
 
 	/* setters */
 	public function setUsername($username)
@@ -57,6 +63,16 @@ class UserVersion
 	public function setMainAccount(Account $account = null)
 	{
 		$this->main_account = $account;
+		return $this;
+	}
+	public function setRateAccount(Account $account = null)
+	{
+		$this->rate_account = $account;
+		return $this;
+	}
+	public function setState($state)
+	{
+		$this->state = $state;
 		return $this;
 	}
 	public function setMainSchedule(Schedule $schedule = null)
@@ -77,8 +93,10 @@ class UserVersion
 		$follow->username = $this->username;
 		$follow->password = $this->password;
 		$follow->main_account = $this->main_account;
+		$follow->rate_account = $this->rate_account;
 		$follow->main_schedule = $this->main_schedule;
 		$follow->entity = $this->entity;
+		$follow->state = $this->state;
 		$follow->author = $author;
 		return $follow;
 	}
