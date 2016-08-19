@@ -3,6 +3,7 @@
 namespace Polonairs\Dialtime\ModelBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Polonairs\Dialtime\ModelBundle\Entity\User;
 
 /**
  * @ORM\Entity
@@ -39,6 +40,7 @@ class UserVersion
 	public function __construct()
 	{
 		$this->created_at = new \DateTime("now");
+		$this->state = User::STATE_JUST_REGISTERED;
 	}
 
 	/* getters */
