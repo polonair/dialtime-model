@@ -54,6 +54,10 @@ class Admin implements UserInterface, EquatableInterface
     	$this->user = $value;
     	return $this;
     }
+    public function getUser()
+    {
+        return $this->user;
+    }
     public function getRoles()
     {
     	return ["ROLE_USER"];

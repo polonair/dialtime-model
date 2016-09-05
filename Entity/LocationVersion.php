@@ -25,6 +25,11 @@ class LocationVersion
 	/**
 	 * @ORM\Column(type="string")
 	 */
+	private $locative;
+
+	/**
+	 * @ORM\Column(type="string")
+	 */
 	private $description;
 
 	/**
@@ -56,9 +61,18 @@ class LocationVersion
     	$this->name = $value;
     	return $this;
     }
+    public function setLocative($value)
+    {
+    	$this->locative = $value;
+    	return $this;
+    }
     public function getName()
     {
     	return $this->name;
+    }
+    public function getLocative()
+    {
+    	return $this->locative;
     }
     public function setEntity(Location $value)
     {

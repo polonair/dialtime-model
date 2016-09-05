@@ -44,12 +44,21 @@ class Location
     }
     public function setName($value)
     {
-    	$this->actual->setName($value);
-    	return $this;
+        $this->actual->setName($value);
+        return $this;
+    }
+    public function setLocative($value)
+    {
+        $this->actual->setLocative($value);
+        return $this;
     }
     public function getName()
     {
-    	return $this->actual->getName();
+        return $this->actual->getName();
+    }
+    public function getLocative()
+    {
+        return $this->actual->getLocative();
     }
     public function setDescription($value)
     {
