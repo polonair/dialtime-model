@@ -9,27 +9,21 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
-use Polonairs\Dialtime\ModelBundle\Service\UserService\UserService;
 use Polonairs\Dialtime\ModelBundle\Entity\Partner;
 
 class PartnerRepository extends EntityRepository implements UserProviderInterface, UserLoaderInterface
 {
-    /*public function loadUserByUsername($username)
+    private static function normalizeUsername($username)
     {
-        $query = $this->getEntityManager()->createQuery(
-            'SELECT c FROM ModelBundle:Partner c JOIN ModelBundle:User u WITH c.user = u.id JOIN ModelBundle:UserVersion v WITH u.actual = v.id WHERE v.username = :name');
-        $query->setParameter('name', $username);
-        $admin = $query->getResult();
-        if (count( $admin) < 1)
-        {
-            throw new UsernameNotFoundException('Unable to find an active user "'.$username.'".');
-        }
-        return $admin[0];
-    }*/
+        if ($username === null) return null;
+        $phone = str_replace(["+", "-", "(", ")", " ", ".", "/", "\\", "*"], "", $username);
+        if (preg_match("#[78]?(9[0-9]{9})#", $phone, $matches)) return "7".$matches[1];
+        return $username;
+    }
     public function loadUserByUsername($username)
     {
         $em = $this->getEntityManager();
-        $normalized = UserService::normalizeUsername($username);
+        $normalized = PartnerRepository::normalizeUsername($username);
         $query = $em->createQuery("
             SELECT partner, user, userVersion
             FROM ModelBundle:Partner partner
