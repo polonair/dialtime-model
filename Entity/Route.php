@@ -24,9 +24,6 @@ class Route
      */
     private $id;
 
-    private $cost = null;
-    private $actual_rejection = null;
-
 	/** !required
 	 * @ORM\OneToOne(targetEntity="RouteVersion", cascade={"persist"})
 	 */
@@ -41,6 +38,8 @@ class Route
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */
     private $removed_at = null;
+    
+    private $attachment;
 
     public function __construct()
     {
@@ -115,30 +114,13 @@ class Route
     {
         return $this->id;
     }
-    public function getAddition()
+    public function getAttachment()
     {
-        return $this->addition;
+        return $this->attachment;
     }
-    public function setAddition($addition)
+    public function setAttachment($attachment)
     {
-        $this->addition = $addition;
+        $this->attachment = $attachment;
         return $this;
-    }
-    public function setCost($cost)
-    {
-        $this->cost = $cost;
-    }
-    public function getCost()
-    {
-        return $this->cost;
-    }
-    public function setActualRejection(RouteRejection $rejection = null)
-    {
-        $this->actual_rejection = $rejection;
-        return $this;
-    }
-    public function getActualRejection()
-    {
-        return $this->actual_rejection;
     }
 }
