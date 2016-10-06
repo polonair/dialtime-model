@@ -100,56 +100,40 @@ class RouteRepository extends EntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery("
-			SELECT route, 
+			SELECT call,
+			       route, 
 			       routeVersion, 
-			       call, 
-			       transaction, 
-			       transactionEntry, 
-			       account, 
-			       routeRejection, 
-			       routeRejectionVersion
-			FROM ModelBundle:Route route
+			       phone,
+			       phoneVersion,
+			       terminatorDongle,
+			       terminatorDongleVersion
+			FROM ModelBundle:Call call
+			JOIN ModelBundle:Route route WITH call.route = route.id
 			JOIN ModelBundle:RouteVersion routeVersion WITH route.actual = routeVersion.id
-			JOIN ModelBundle:Call call WITH route.id = call.route
-			JOIN ModelBundle:Transaction transaction WITH call.transaction = transaction.id
-			JOIN ModelBundle:TransactionEntry transactionEntry WITH transaction.id = transactionEntry.transaction
-			JOIN ModelBundle:Account account WITH transactionEntry.acc_from = account.id
-			LEFT JOIN ModelBundle:RouteRejectionVersion routeRejectionVersion WITH route.id = routeRejectionVersion.route
-			LEFT JOIN ModelBundle:RouteRejection routeRejection WITH routeRejectionVersion.id = routeRejection.actual
-			WHERE routeVersion.state IN (:state) AND
-				  call.direction IN (:callDirections) AND
-				  account.owner = :owner");
-		$query
-			->setParameter("state", [Route::STATE_ACTIVE, Route::STATE_REJECTED])
-			->setParameter("callDirections", [Call::DIRECTION_RG, Call::DIRECTION_RRG, ])
-			->setParameter("owner", $master->getUser()->getId());
-		$result = $query->getResult();
-		$data = [];
-		$rejections = [];
-		foreach($result as $r)
+			JOIN ModelBundle:Phone phone WITH routeVersion.master_phone = phone.id
+			JOIN ModelBundle:PhoneVersion phoneVersion WITH phone.actual = phoneVersion.id
+			JOIN ModelBundle:Dongle terminatorDongle WITH routeVersion.terminator = terminatorDongle.id
+			JOIN ModelBundle:DongleVersion terminatorDongleVersion WITH terminatorDongle.actual = terminatorDongleVersion.id
+			WHERE phoneVersion.owner = :owner");
+		$query->setParameter("owner", $master->getUser()->getId());
+		$data = $query->getResult();
+
+		$result = [];
+		foreach ($data as $d) 
 		{
-			if ($r instanceof Call) 
-				$data[$r->getTransaction()->getId()]["call"] = $r;
-			elseif ($r instanceof TransactionEntry) 
-				$data[$r->getTransaction()->getId()]["te"] = $r;
-			elseif ($r instanceof RouteRejection)
-				$rejections[$r->getRoute()->getId()] = $r;
+			if ($d instanceof Route) $result[$d->getId()] = $d;
 		}
-		$routes = [];
-		foreach($data as $piece)
+		$calls = [];
+		foreach ($data as $d) 
 		{
-			$route = $piece["call"]->getRoute();
-			if (array_key_exists($route->getId(), $rejections))
-			{
-				$route->setActualRejection($rejections[$route->getId()]);
-			}
-			$route->setCost($piece["te"]->getAmount());
-			$route->setAddition([
-				"createdAt" => $piece["call"]->getCreatedAt(),
-				"cost" => $piece["te"]->getAmount()]);
-			$routes[] = $route;
+			if ($d instanceof Call) $calls[$d->getRoute()->getId()][] = $d;
 		}
-		return $routes;
+		foreach($result as $route)
+		{
+			$route->setAttachment(["calls" => $calls[$route->getId()]]);
+		}
+
+		return $result;
 	}
 	public function loadByPartner(Partner $partner)
 	{
