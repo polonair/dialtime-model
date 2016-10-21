@@ -19,6 +19,7 @@ class Transaction
 
     const EVENT_TRADE = "TRADE";
     const EVENT_FILLUP = "FILLUP";
+    const EVENT_BONUS = "BONUS";
 
 	/** 
 	 * @ORM\Column(type="integer")
@@ -31,6 +32,16 @@ class Transaction
      * @ORM\Column(type="string")
      */
     public $event;
+
+    /** 
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    public $autoclose = null;
+
+    /** 
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    public $autocancel = null;
 
     /** 
      * @ORM\Column(type="datetime")
@@ -60,6 +71,24 @@ class Transaction
     public function getId()
     {
     	return $this->id;
+    }
+    public function getAutoClose()
+    {
+        return $this->autoclose;
+    }
+    public function setAutoClose(\DateTime $date = null)
+    {
+        $this->autoclose = $date;
+        return $this;
+    }
+    public function getAutoCancel()
+    {
+        return $this->autocancel;
+    }
+    public function setAutoCancel(\DateTime $date = null)
+    {
+        $this->autocancel = $date;
+        return $this;
     }
     public function setEvent($event)
     {

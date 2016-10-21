@@ -103,4 +103,20 @@ class TransactionRepository extends EntityRepository
 		foreach ($jobs as $j) if ($j instanceof TransactionEntry) $result[] = $j;
 		return $result;
     }
+    public function loadHeld()
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT transaction
+                FROM ModelBundle:Transaction transaction
+                WHERE transaction.open_at IS NOT NULL AND 
+                    transaction.hold_at IS NOT NULL AND 
+                    transaction.cancel_at IS NULL AND 
+                    transaction.close_at IS NULL")
+            ->getResult();
+        $result = [];
+        foreach ($data as $d) if ($d instanceof Transaction) $result[] = $d;
+        return $result;
+    }
 }

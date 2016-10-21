@@ -139,4 +139,8 @@ class RouteVersion
     {
         return $this->state;
     }
+    public function getId()
+    {
+        return $this->id;
+    }
 }

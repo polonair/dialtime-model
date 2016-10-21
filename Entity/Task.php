@@ -13,7 +13,10 @@ class Task
 	const STATE_ACTIVE = "ACTIVE";
 	const STATE_CLOSED = "CLOSED";
 	
-	const REASON_RG = "RG";
+	const REASON_RG = "RG"; // route generated
+	const REASON_TO = "TO"; // time out
+	const REASON_PO = "PO"; // price out
+	const REASON_USER = "USER"; // user have disabled the offer
 
 	/**
 	 * @ORM\Column(type="integer")
@@ -42,6 +45,8 @@ class Task
 	public function getCampaign() { return $this->actual->getCampaign(); }
 	public function getMasterPrice() { return $this->actual->getMasterPrice(); }
 	public function getPartnerPrice() { return $this->actual->getPartnerPrice(); }
+	public function getSystemPrice() { return $this->actual->getSystemPrice(); }
+	public function getRate() { return $this->actual->getRate(); }
 
 	/* setters */
 	public function setState($state, User $author = null)
@@ -78,6 +83,12 @@ class Task
 	{
 		if ($price != $this->actual->getPartnerPrice())
             $this->follow($author)->setPartnerPrice($price);
+		return $this;
+	}
+	public function setRate($rate = 0.0, User $author = null)
+	{
+		if ($rate != $this->actual->getRate())
+            $this->follow($author)->setRate($rate);
 		return $this;
 	}
 	public function setSystemPrice($price = 0.0, User $author = null)

@@ -33,4 +33,26 @@ class ScheduleRepository extends EntityRepository
 		//dump($schedules);
 		return $schedules;
 	}
+	public function loadById($owner)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery("
+			SELECT schedule, scheduleVersion, interval
+			FROM ModelBundle:Schedule schedule
+			JOIN ModelBundle:ScheduleVersion scheduleVersion WITH schedule.actual = scheduleVersion.id
+			JOIN ModelBundle:Interval interval WITH schedule.id = interval.schedule
+			WHERE schedule.id = :owner");
+		$query->setParameter("owner", $owner);
+		$result = $query->getResult();
+		$schedules = [];
+		foreach($result as $r)
+		{
+			if ($r instanceof Schedule) $schedules[$r->getId()] = $r;
+		}
+		foreach($result as $r)
+		{
+			if ($r instanceof Interval) $schedules[$r->getSchedule()->getId()]->addInterval($r);
+		}
+		return $schedules[$owner];
+	}
 }

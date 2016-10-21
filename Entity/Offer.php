@@ -36,6 +36,8 @@ class Offer
 	 */
     public $removed_at = null;
 
+    private $task = null;
+
     public function __construct()
     {
         $this->actual = new OfferVersion();
@@ -107,6 +109,19 @@ class Offer
 	public function setSchedule(Schedule $schedule)
 	{
 		$this->actual->setSchedule($schedule);
+		return $this;
+	}
+	public function isActual()
+	{
+		return $this->getSchedule()->isActual();
+	}
+	public function getTask() 
+	{
+		return $this->task;
+	}
+	public function setTask(TASk $task = null) 
+	{
+		$this->task = $task;
 		return $this;
 	}
 }

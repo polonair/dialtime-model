@@ -9,25 +9,56 @@ use Polonairs\Dialtime\ModelBundle\Entity\Master;
 use Polonairs\Dialtime\ModelBundle\Entity\Partner;
 use Polonairs\Dialtime\ModelBundle\Entity\Schedule;
 use Polonairs\Dialtime\ModelBundle\Entity\Interval;
+use Polonairs\Dialtime\ModelBundle\Entity\Task;
 
 class OfferRepository extends EntityRepository
 {
     public function loadActive()
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery("SELECT c, cv, m, u, uv, a FROM ModelBundle:Offer c JOIN ModelBundle:OfferVersion cv WITH c.actual = cv.id JOIN ModelBundle:Master m WITH cv.owner = m.id JOIN ModelBundle:User u WITH u.id = m.user JOIN ModelBundle:UserVersion uv WITH uv.id = u.actual JOIN ModelBundle:Account a WITH a.id = uv.main_account WHERE cv.state = :state1 OR cv.state = :state2");
-        $query->setParameter('state1', Offer::STATE_ON);
-        $query->setParameter('state2', Offer::STATE_AUTO);
-        $offers = $query->getResult();
+        $offers = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT 
+                    offer, 
+                    offerVersion, 
+                    master, 
+                    user, 
+                    userVersion, 
+                    account,
+                    schedule,
+                    scheduleVersion
+                FROM ModelBundle:Offer offer 
+                JOIN ModelBundle:OfferVersion offerVersion WITH offer.actual = offerVersion.id 
+                JOIN ModelBundle:Master master WITH offerVersion.owner = master.id 
+                JOIN ModelBundle:User user WITH user.id = master.user 
+                JOIN ModelBundle:UserVersion userVersion WITH userVersion.id = user.actual 
+                JOIN ModelBundle:Account account WITH account.id = userVersion.main_account
+                JOIN ModelBundle:Schedule schedule WITH schedule.id = offerVersion.schedule  
+                JOIN ModelBundle:ScheduleVersion scheduleVersion WITH scheduleVersion.id = schedule.actual
+                WHERE offerVersion.state IN (:states)")
+            ->setParameter('states', [Offer::STATE_ON, Offer::STATE_AUTO])
+            ->getResult();
         $result = [];
-        for ($i = 0; $i < count($offers); $i++) if ($offers[$i] instanceof Offer) $result[$offers[$i]->getId()] = $offers[$i];
+        foreach($offers as $offer) if ($offer instanceof Offer) $result[$offer->getId()] = $offer;
         return $result;
     }
     public function loadAllForMaster(Master $master)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery('
-            SELECT offer, offerVersion, category, categoryVersion, location, locationVersion, phone, phoneVersion, schedule, scheduleVersion, interval
+            SELECT offer, 
+                offerVersion, 
+                category, 
+                categoryVersion, 
+                location, 
+                locationVersion, 
+                phone, 
+                phoneVersion, 
+                schedule, 
+                scheduleVersion, 
+                interval, 
+                task, 
+                taskVersion
             FROM ModelBundle:Offer offer 
             JOIN ModelBundle:OfferVersion offerVersion WITH offer.actual = offerVersion.id
             JOIN ModelBundle:Category category WITH offerVersion.category = category.id
@@ -39,22 +70,59 @@ class OfferRepository extends EntityRepository
             JOIN ModelBundle:Schedule schedule WITH offerVersion.schedule = schedule.id
             JOIN ModelBundle:ScheduleVersion scheduleVersion WITH offer.actual = offerVersion.id
             JOIN ModelBundle:Interval interval WITH schedule.id = interval.schedule
-            WHERE offerVersion.owner = :master');
+            LEFT OUTER JOIN ModelBundle:TaskVersion taskVersion WITH taskVersion.offer = offer.id
+            LEFT OUTER JOIN ModelBundle:Task task WITH taskVersion.entity = task.id AND task.actual = taskVersion.id
+            WHERE offerVersion.owner = :master AND
+                taskVersion.state = :state');
         $query->setParameter('master', $master);
+        $query->setParameter('state', Task::STATE_ACTIVE);
         $data = $query->getResult();
-        //dump($data); die;
         $result = [];
         $schedules = [];
         foreach($data as $object) 
         {
-            if ($object instanceof Offer) $result[] = $object;            
+            if ($object instanceof Offer) $result[$object->getId()] = $object;            
             if ($object instanceof Schedule) $schedules[$object->getId()] = $object;
         }
         foreach($data as $object) 
         {
             if ($object instanceof Interval) $schedules[$object->getSchedule()->getId()]->addInterval($object);
         }
+        foreach($data as $object) 
+        {
+            if ($object instanceof Task) 
+            {
+                if ($result[$object->getOffer()->getId()]->getTask() === null)
+                {
+                    $result[$object->getOffer()->getId()]->setTask($object);
+                }
+                else 
+                {
+                    if ($result[$object->getOffer()->getId()]->getTask()->getRate() < $object->getRate())
+                    {
+                        $result[$object->getOffer()->getId()]->setTask($object);
+                    }
+                }
+            }
+        }
 
         return $result;
+    }
+    public function isOfferActual(Offer $offer, $value)
+    {
+        $count = $this
+            ->getEntityManager()
+            ->createQuery('
+                SELECT COUNT(interval.id)
+                FROM ModelBundle:Interval interval
+                JOIN ModelBundle:Schedule schedule WITH interval.schedule = schedule.id
+                JOIN ModelBundle:ScheduleVersion scheduleVersion WITH schedule.actual = scheduleVersion.id
+                JOIN ModelBundle:OfferVersion offerVersion WITH schedule.id = offerVersion.schedule
+                JOIN ModelBundle:Offer offer WITH offerVersion.entity = offer.id AND offerVersion.id = offer.actual
+                WHERE offer.id = :id AND interval.from_time < :value AND interval.to_time > :value')
+            ->setParameter('id', $offer->getId())
+            ->setParameter('value', $value)
+            ->getSingleScalarResult();
+        return ($count > 0);
     }
 }

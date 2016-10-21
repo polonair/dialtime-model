@@ -12,6 +12,7 @@ use Polonairs\Dialtime\ModelBundle\Entity\Dongle;
 use Polonairs\Dialtime\ModelBundle\Entity\TransactionEntry;
 use Polonairs\Dialtime\ModelBundle\Entity\RouteRejection;
 use Polonairs\Dialtime\ModelBundle\Entity\Phone;
+use Polonairs\Dialtime\ModelBundle\Entity\Offer;
 
 class RouteRepository extends EntityRepository
 {
@@ -151,5 +152,28 @@ class RouteRepository extends EntityRepository
 		$result = [];
 		foreach ($jobs as $j) if ($j instanceof Route) $result[] = $j;
 		return $result;
+	}
+	public function loadLatestForOffer(Offer $offer)
+	{
+		$query = $this->getEntityManager()->createQuery("
+			SELECT 
+				route,
+				routeVersion,
+				task,
+				taskVersion,
+				offer,
+				offerVersion
+			FROM ModelBundle:Route route
+			JOIN ModelBundle:RouteVersion routeVersion WITH route.actual = routeVersion.id
+			JOIN ModelBundle:Task task WITH routeVersion.task = task.id
+			JOIN ModelBundle:TaskVersion taskVersion WITH task.actual = taskVersion.id
+			JOIN ModelBundle:Offer offer WITH taskVersion.offer = offer.id
+			JOIN ModelBundle:OfferVersion offerVersion WITH offer.actual = offerVersion.id
+			WHERE offer.id = :offer
+			ORDER BY route.created_at ASC");
+		$query->setParameter('offer', $offer->getId());
+		$data = $query->getResult();
+		foreach ($data as $d) if ($d instanceof Route) return $d;
+		return null;
 	}
 }

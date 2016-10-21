@@ -78,4 +78,9 @@ class Interval
         $this->to_time = $to_time;
         return $this;
     }
+    public function isActual()
+    {
+        $now = ((date("N")-1)*24*60) - (date("H")*60) - date("i");
+        return (($now > $this->getFrom()) && ($now > $this->getTo()));
+    }
 } 
