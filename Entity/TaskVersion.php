@@ -26,6 +26,8 @@ class TaskVersion
 	private $partner_price;	
 	/** @ORM\Column(type="decimal", precision=11, scale=2) */
 	private $system_price;
+	/** @ORM\Column(type="decimal", precision=11, scale=2) */
+	private $rate = 0.0;
 	/** @ORM\Column(type="string") */
 	private $state = Task::STATE_ACTIVE;
 	/** @ORM\Column(type="string", nullable=true) */
@@ -50,6 +52,7 @@ class TaskVersion
 	public function getMasterPrice() { return $this->master_price; }
 	public function getSystemPrice() { return $this->system_price; }
 	public function getPartnerPrice() { return $this->partner_price; }
+	public function getRate() { return $this->rate; }
 	public function getState() { return $this->state; }
 	public function getCloseReason() { return $this->close_reason; }
 
@@ -82,6 +85,11 @@ class TaskVersion
 	public function setPartnerPrice($price)
 	{
 		$this->partner_price = $price;
+		return $this;
+	}
+	public function setRate($rate)
+	{
+		$this->rate = $rate;
 		return $this;
 	}
 	public function setSystemPrice($price)

@@ -23,6 +23,8 @@ class Spread
     /** @ORM\Column(type="datetime", nullable=true) */
     private $removed_at = null;
 
+    private $history = [];
+
     /* constructor */
     public function __construct()
     {
@@ -31,8 +33,11 @@ class Spread
     }
 
     /* getters */    
+    public function getId() { return $this->id; }
     public function getCategory() { return $this->actual->getCategory(); }
     public function getLocation() { return $this->actual->getLocation(); }
+    public function getValue() { return $this->actual->getValue(); }
+    public function getHistory() { return $this->history; }
 
     /* setters */
     public function setValue($value, User $author = null)
@@ -51,6 +56,11 @@ class Spread
     {
         if ($location != $this->actual->getLocation())
             $this->follow($author)->setLocation($location);
+        return $this;
+    }
+    public function setHistory(array $history)
+    {
+        $this->history = $history;
         return $this;
     }
 

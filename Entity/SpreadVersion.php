@@ -40,6 +40,7 @@ class SpreadVersion
     public function getValue() { return $this->value; }
     public function getCategory() { return $this->category; }
     public function getLocation() { return $this->location; }
+    public function getCreatedAt() { return $this->created_at; }
 
     /* setters */
     public function setValue($value)

@@ -3,6 +3,7 @@
 namespace Polonairs\Dialtime\ModelBundle\Repository;
 
 use Polonairs\Dialtime\ModelBundle\Entity\Partner;
+use Polonairs\Dialtime\ModelBundle\Entity\Location;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 
@@ -11,12 +12,34 @@ class LocationRepository extends EntityRepository
     public function loadIndexed()
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery('SELECT c, cv FROM ModelBundle:Location c JOIN ModelBundle:LocationVersion cv WITH c.actual = cv.id');
-        $locations = $query->getResult();
-        $result = null;
-        for ($i = 0; $i < count($locations); $i+=2) $result[$locations[$i]->getId()] = $locations[$i];
-        //dump($locations);
-        //dump($result);
+        $query = $em->createQuery('
+            SELECT location, locationVersion
+            FROM ModelBundle:Location location 
+            JOIN ModelBundle:LocationVersion locationVersion WITH location.actual = locationVersion.id');
+        $data = $query->getResult();
+        $result = [];
+        foreach($data as $d)
+        {
+            if ($d instanceof Location) $result[$d->getId()] = $d;
+        }
         return $result;
+    }
+    public function isChildOrSame(Location $parent, Location $child)
+    {
+        //dump($parent->getId());
+        //dump($child->getId());
+        if ($parent->getId() === $child->getId()) return true;
+        $result = $this->loadIndexed();
+        //dump($result);
+        if ($result[$child->getId()]->getParent() === null) return false;
+        $location = $result[$child->getId()]->getParent()->getId();
+        while (true)
+        {
+            //dump($location);
+            if ($location === $parent->getId()) return true;
+            if ($result[$location]->getParent() === null) return false;
+            $location = $result[$location]->getParent()->getId();
+        }
+        return false;
     }
 }

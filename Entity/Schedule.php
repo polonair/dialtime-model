@@ -71,4 +71,16 @@ class Schedule
     {
         return $this->actual->getTimezone();
     }
+    public function isActual()
+    {
+        $intervals = $this->getIntervals();
+        dump($intervals);
+        if (count($intervals) < 1) return false;
+
+        foreach($intervals as $i)
+        {
+            if ($i->isActual()) return true;
+        }
+        return false;
+    }
 }

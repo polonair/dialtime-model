@@ -118,9 +118,17 @@ class Route
     {
         return $this->attachment;
     }
+    public function getCreatedAt()
+    {
+        return $this->created_at;
+    }
     public function setAttachment($attachment)
     {
         $this->attachment = $attachment;
         return $this;
+    }
+    public function getActual()
+    {
+        return $this->actual;
     }
 }
