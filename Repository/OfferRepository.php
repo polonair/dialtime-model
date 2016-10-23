@@ -70,10 +70,9 @@ class OfferRepository extends EntityRepository
             JOIN ModelBundle:Schedule schedule WITH offerVersion.schedule = schedule.id
             JOIN ModelBundle:ScheduleVersion scheduleVersion WITH offer.actual = offerVersion.id
             JOIN ModelBundle:Interval interval WITH schedule.id = interval.schedule
-            LEFT OUTER JOIN ModelBundle:TaskVersion taskVersion WITH taskVersion.offer = offer.id
+            LEFT OUTER JOIN ModelBundle:TaskVersion taskVersion WITH taskVersion.offer = offer.id AND taskVersion.state = :state
             LEFT OUTER JOIN ModelBundle:Task task WITH taskVersion.entity = task.id AND task.actual = taskVersion.id
-            WHERE offerVersion.owner = :master AND
-                taskVersion.state = :state');
+            WHERE offerVersion.owner = :master');
         $query->setParameter('master', $master);
         $query->setParameter('state', Task::STATE_ACTIVE);
         $data = $query->getResult();
@@ -126,3 +125,4 @@ class OfferRepository extends EntityRepository
         return ($count > 0);
     }
 }
+
