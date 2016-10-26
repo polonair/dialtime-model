@@ -13,6 +13,10 @@ class Auth
 	const TYPE_REGISTRATION = "REGISTRATION";
 	const TYPE_LOGIN = "LOGIN";
 
+	const CABINET_ADMIN = "ADMIN";
+	const CABINET_MASTER = "MASTER";
+	const CABINET_PARTNER = "PARTNER";
+
 	/** 
 	 * @ORM\Column(type="integer")
 	 * @ORM\Id
@@ -34,6 +38,11 @@ class Auth
 	 * @ORM\Column(type="string")
 	 */
 	private $ip;
+
+	/**
+	 * @ORM\Column(type="string")
+	 */
+	private $cabinet;
 
 	/** 
 	 * @ORM\Column(type="datetime")
@@ -64,6 +73,11 @@ class Auth
 	public function setUser($user)
 	{
 		$this->user = $user;
+		return $this;
+	}
+	public function setCabinet($cabinet)
+	{
+		$this->cabinet = $cabinet;
 		return $this;
 	}
 	public function setIp($ip)

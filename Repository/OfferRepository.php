@@ -118,7 +118,7 @@ class OfferRepository extends EntityRepository
                 JOIN ModelBundle:ScheduleVersion scheduleVersion WITH schedule.actual = scheduleVersion.id
                 JOIN ModelBundle:OfferVersion offerVersion WITH schedule.id = offerVersion.schedule
                 JOIN ModelBundle:Offer offer WITH offerVersion.entity = offer.id AND offerVersion.id = offer.actual
-                WHERE offer.id = :id AND interval.from_time < :value AND interval.to_time > :value')
+                WHERE offer.id = :id AND interval.from_time < (:value + scheduleVersion.tz) AND interval.to_time > (:value + scheduleVersion.tz)')
             ->setParameter('id', $offer->getId())
             ->setParameter('value', $value)
             ->getSingleScalarResult();
