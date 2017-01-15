@@ -89,9 +89,10 @@ class Offer
 		$this->actual->setState($value);
 		return $this;
 	}
-	public function setAsk($value)
+	public function setAsk($value, $author = null)
 	{
-		$this->actual->setAsk($value);
+		if ($value != $this->actual->getAsk())
+            $this->follow($author)->setAsk($value);
 		return $this;
 	}
 	public function getLocation()
@@ -123,5 +124,13 @@ class Offer
 	{
 		$this->task = $task;
 		return $this;
+	}
+
+	/* follower */
+	private function follow(User $author = null)
+	{
+		if ($this->actual->getId() != null)
+			$this->actual = $this->actual->follow($author);
+		return $this->actual;
 	}
 }

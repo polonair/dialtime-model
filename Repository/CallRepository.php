@@ -11,6 +11,42 @@ use Polonairs\Dialtime\ModelBundle\Entity\Dongle;
 
 class CallRepository extends EntityRepository
 {
+	public function loadOneForMaster(Master $master, $id)
+	{	
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery("
+            SELECT call, route, routeVersion, phone, phoneVersion
+			FROM ModelBundle:Call call
+			JOIN ModelBundle:Route route WITH call.route = route.id 
+			JOIN ModelBundle:RouteVersion routeVersion WITH route.actual = routeVersion.id 
+			JOIN ModelBundle:Phone phone WITH routeVersion.master_phone = phone.id 
+			JOIN ModelBundle:PhoneVersion phoneVersion WITH phone.actual = phoneVersion.id 
+			WHERE phoneVersion.owner = :master AND call.id = :id
+			ORDER BY call.created_at ASC");
+        $query->setParameter('master', $master->getUser())->setParameter('id', $id);
+        $jobs = $query->getResult();
+        foreach ($jobs as $j) if ($j instanceof Call) return $j;
+        return null;
+	}
+	public function loadAllIdsForMaster(Master $master, $time)
+	{
+        $em = $this->getEntityManager();
+        $query = $this->getEntityManager()->createQuery("
+			SELECT call, route, routeVersion, phone, phoneVersion
+			FROM ModelBundle:Call call
+			JOIN ModelBundle:Route route WITH call.route = route.id 
+			JOIN ModelBundle:RouteVersion routeVersion WITH route.actual = routeVersion.id 
+			JOIN ModelBundle:Phone phone WITH routeVersion.master_phone = phone.id 
+			JOIN ModelBundle:PhoneVersion phoneVersion WITH phone.actual = phoneVersion.id 
+			WHERE phoneVersion.owner = :master AND call.created_at > :from
+			ORDER BY call.created_at ASC");
+        $query->setParameter('master', $master->getUser())->setParameter('from', (new \DateTime())->setTimestamp($time));
+        $data = $query->getResult();
+        $result = [];
+        foreach($data as $object) if ($object instanceof Call) $result[] = $object->getId();
+        return $result;
+	}
 	public function loadLatestForTerminator(Dongle $terminator)
 	{
 		$em = $this->getEntityManager();

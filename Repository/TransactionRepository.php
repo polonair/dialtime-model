@@ -6,10 +6,44 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Polonairs\Dialtime\ModelBundle\Entity\Transaction;
 use Polonairs\Dialtime\ModelBundle\Entity\User;
+use Polonairs\Dialtime\ModelBundle\Entity\Master;
 use Polonairs\Dialtime\ModelBundle\Entity\TransactionEntry;
 
 class TransactionRepository extends EntityRepository
 {
+    public function loadOneForMaster(Master $master, $id)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery("
+            SELECT transactionEntry, transaction, fromAccount, toAccount
+            FROM ModelBundle:TransactionEntry transactionEntry
+            JOIN ModelBundle:Transaction transaction WITH transactionEntry.transaction = transaction.id
+            JOIN ModelBundle:Account fromAccount WITH transactionEntry.acc_from = fromAccount.id
+            JOIN ModelBundle:Account toAccount WITH transactionEntry.acc_to = toAccount.id
+            WHERE (fromAccount.owner = :user OR toAccount.owner = :user) AND transactionEntry.id = :id");
+        $query->setParameter('user', $master->getUser())->setParameter('id', $id);
+        $jobs = $query->getResult();
+        foreach ($jobs as $j) if ($j instanceof TransactionEntry) return $j;
+        return null;
+    }
+    public function loadAllIdsForMaster(Master $master, $time)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery("
+            SELECT transactionEntry, transaction, fromAccount, toAccount
+            FROM ModelBundle:TransactionEntry transactionEntry
+            JOIN ModelBundle:Transaction transaction WITH transactionEntry.transaction = transaction.id
+            JOIN ModelBundle:Account fromAccount WITH transactionEntry.acc_from = fromAccount.id
+            JOIN ModelBundle:Account toAccount WITH transactionEntry.acc_to = toAccount.id
+            WHERE (fromAccount.owner = :user OR toAccount.owner = :user) AND transaction.open_at > :from");
+        $query->setParameter('user', $master->getUser())->setParameter('from', (new \DateTime())->setTimestamp($time));
+        $jobs = $query->getResult();
+        $result = [];
+        foreach ($jobs as $j) if ($j instanceof TransactionEntry) $result[] = $j->getId();
+        return $result;
+    }
     public function doHold(Transaction $transaction)
     {
     	$em = $this->getEntityManager();

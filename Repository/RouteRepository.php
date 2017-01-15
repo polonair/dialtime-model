@@ -16,6 +16,68 @@ use Polonairs\Dialtime\ModelBundle\Entity\Offer;
 
 class RouteRepository extends EntityRepository
 {
+	public function loadOneForMaster(Master $master, $id)
+	{
+        $em = $this->getEntityManager();
+        $query = $this->getEntityManager()->createQuery("
+			SELECT
+				route, routeVersion, 
+				phone, phoneVersion, 
+				terminator, terminatorVersion, 
+				task, taskVersion, 
+				offer, offerVersion
+			FROM ModelBundle:Route route
+			JOIN ModelBundle:RouteVersion routeVersion WITH route.actual = routeVersion.id 
+			JOIN ModelBundle:Phone phone WITH routeVersion.master_phone = phone.id 
+			JOIN ModelBundle:PhoneVersion phoneVersion WITH phone.actual = phoneVersion.id 
+			JOIN ModelBundle:Dongle terminator WITH routeVersion.terminator = terminator.id 
+			JOIN ModelBundle:DongleVersion terminatorVersion WITH terminator.actual = terminatorVersion.id 
+			JOIN ModelBundle:Task task WITH routeVersion.task = task.id 
+			JOIN ModelBundle:TaskVersion taskVersion WITH task.actual = taskVersion.id 
+			JOIN ModelBundle:Offer offer WITH taskVersion.offer = offer.id 
+			JOIN ModelBundle:OfferVersion offerVersion WITH offer.actual = offerVersion.id 
+			WHERE phoneVersion.owner = :master AND route.id = :id")
+        	->setParameter('master', $master->getUser())
+	        ->setParameter('id', $id);
+        $data = $query->getResult();
+        $route = null;
+        foreach($data as $object) if ($object instanceof Route) { $route = $object; break; }
+        if ($route !== null)
+        {
+        	$query = $this->getEntityManager()->createQuery("
+				SELECT
+					entry, transaction, call
+				FROM ModelBundle:TransactionEntry entry
+				JOIN ModelBundle:Transaction transaction WITH entry.transaction = transaction.id 
+				JOIN ModelBundle:Call call WITH transaction.id = call.transaction
+				WHERE call.direction IN (:dirs) AND entry.role = :role AND call.route = :route")
+				->setParameter('dirs', [ Call::DIRECTION_RG, Call::DIRECTION_RRG ])
+				->setParameter('role', 'BUYER')
+				->setParameter('route', $route);
+        	$data = $query->getResult();
+        	foreach($data as $object) if ($object instanceof TransactionEntry) { $route->setAttachment(["cost" => $object->getAmount()]); break; }
+        }
+        return $route;
+	}
+	public function loadAllIdsForMaster(Master $master, $time)
+	{
+        $em = $this->getEntityManager();
+        $query = $this->getEntityManager()->createQuery("
+			SELECT call, route, routeVersion, phone, phoneVersion
+			FROM ModelBundle:Call call
+			JOIN ModelBundle:Route route WITH call.route = route.id 
+			JOIN ModelBundle:RouteVersion routeVersion WITH route.actual = routeVersion.id 
+			JOIN ModelBundle:Phone phone WITH routeVersion.master_phone = phone.id 
+			JOIN ModelBundle:PhoneVersion phoneVersion WITH phone.actual = phoneVersion.id 
+			WHERE phoneVersion.owner = :master AND call.created_at > :from
+			GROUP BY route
+			ORDER BY call.created_at ASC");
+        $query->setParameter('master', $master->getUser())->setParameter('from', (new \DateTime())->setTimestamp($time));
+        $data = $query->getResult();
+        $result = [];
+        foreach($data as $object) if ($object instanceof Route) $result[] = $object->getId();
+        return $result;
+	}
 	public function loadActiveForMasterPhone(Phone $phone)
 	{
 		$em = $this->getEntityManager();

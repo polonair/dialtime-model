@@ -10,6 +10,19 @@ use Doctrine\ORM\Query;
 
 class CategoryRepository extends EntityRepository
 {
+    public function loadOne($id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('
+            SELECT category, categoryVersion 
+            FROM ModelBundle:Category category 
+            JOIN ModelBundle:CategoryVersion categoryVersion WITH category.actual = categoryVersion.id
+            WHERE category.id = :id');
+        $query->setParameter('id', $id);
+        $data = $query->getResult();
+        foreach($data as $d) if ($d instanceof Category) return $d;
+        return null;
+    }
     public function loadIndexed()
     {
         $em = $this->getEntityManager();
