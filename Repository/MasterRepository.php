@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Polonairs\Dialtime\ModelBundle\Entity\Master;
+use Polonairs\Dialtime\ModelBundle\Entity\User;
 
 class MasterRepository extends EntityRepository implements UserProviderInterface, UserLoaderInterface
 {
@@ -19,6 +20,37 @@ class MasterRepository extends EntityRepository implements UserProviderInterface
         $phone = str_replace(["+", "-", "(", ")", " ", ".", "/", "\\", "*"], "", $username);
         if (preg_match("#[78]?(9[0-9]{9})#", $phone, $matches)) return "7".$matches[1];
         return $username;
+    }
+    public function loadMasterByUser(User $user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery("
+            SELECT master
+            FROM ModelBundle:Master master
+            JOIN ModelBundle:MasterVersion masterVersion WITH master.actual = masterVersion.id
+            WHERE master.user = :user");
+        $query->setParameter("user", $user);
+        $result = $query->getResult();
+        $master = null;
+        foreach($result as $r) if ($r instanceof Master) { $master = $r; break; }
+        return $master;
+    }
+    public function loadUser($username, $password)
+    {
+        $em = $this->getEntityManager();
+        $normalized = MasterRepository::normalizeUsername($username);
+        $query = $em->createQuery("
+            SELECT master, user, userVersion
+            FROM ModelBundle:Master master
+            JOIN ModelBundle:User user WITH master.user = user.id
+            JOIN ModelBundle:UserVersion userVersion WITH user.actual = userVersion.id
+            WHERE userVersion.username = :name");
+        $query->setParameter("name", $normalized);
+        $result = $query->getResult();
+        $master = null;
+        foreach($result as $r) if ($r instanceof Master) { $master = $r; break; }
+        if ($master !== null && password_verify($password, $master->getPassword())) return $master;
+        return null;
     }
     public function loadUserByUsername($username)
     {

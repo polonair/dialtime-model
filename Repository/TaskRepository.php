@@ -6,9 +6,51 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Polonairs\Dialtime\ModelBundle\Entity\Task;
 use Polonairs\Dialtime\ModelBundle\Entity\Dongle;
+use Polonairs\Dialtime\ModelBundle\Entity\Master;
 
 class TaskRepository extends EntityRepository
 {
+    public function loadOneForMaster($master, $id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('
+            SELECT task, taskVersion, offer, offerVersion
+            FROM ModelBundle:Task task 
+            JOIN ModelBundle:TaskVersion taskVersion WITH task.actual = taskVersion.id
+            JOIN ModelBundle:Offer offer WITH offer.id = taskVersion.offer
+            JOIN ModelBundle:OfferVersion offerVersion WITH offer.actual = offerVersion.id
+            WHERE offerVersion.owner = :master AND task.id = :id');
+        $query->setParameter('master', $master)->setParameter('id', $id);
+        $data = $query->getResult();
+        $result = null;
+
+        foreach($data as $object) 
+        {
+            if ($object instanceof Task) 
+            {
+                $result = $object;
+                break;
+            }
+        }
+
+        return $result;        
+    }
+    public function loadAllIdsForMaster(Master $master, $time)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('
+            SELECT task, taskVersion, offer, offerVersion
+            FROM ModelBundle:Task task 
+            JOIN ModelBundle:TaskVersion taskVersion WITH task.actual = taskVersion.id
+            JOIN ModelBundle:Offer offer WITH offer.id = taskVersion.offer
+            JOIN ModelBundle:OfferVersion offerVersion WITH offer.actual = offerVersion.id
+            WHERE offerVersion.owner = :master AND taskVersion.created_at > :from AND taskVersion.state = :state');
+        $query->setParameter('master', $master)->setParameter('from', (new \DateTime())->setTimestamp($time))->setParameter('state', Task::STATE_ACTIVE);
+        $data = $query->getResult();
+        $result = [];
+        foreach($data as $object) if ($object instanceof Task) $result[] = $object->getId();
+        return $result;
+    }
     public function loadTaskForOriginator(Dongle $originator)
     {
         $result = $this

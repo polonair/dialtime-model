@@ -71,6 +71,10 @@ class OfferVersion
 	{
 		$this->created_at = new \DateTime("now");
 	}
+	public function getId()
+	{
+		return $this->id;
+	}
     public function setEntity(Offer $value)
     {
     	$this->entity = $value;
@@ -138,5 +142,21 @@ class OfferVersion
 	{
 		$this->schedule = $schedule;
 		return $this;
+	}
+
+	/* follower */
+	public function follow(User $author = null)
+	{
+		$follow = new OfferVersion();
+		$follow->owner = $this->owner;
+		$follow->phone = $this->phone;
+		$follow->category = $this->category;
+		$follow->location = $this->location;	
+		$follow->schedule = $this->schedule;
+		$follow->state = $this->state;
+		$follow->ask = $this->ask;
+		$follow->entity = $this->entity;
+		$follow->author = $author;
+		return $follow;
 	}
 }

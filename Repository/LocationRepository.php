@@ -9,6 +9,19 @@ use Doctrine\ORM\Query;
 
 class LocationRepository extends EntityRepository
 {
+    public function loadOne($id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('
+            SELECT location, locationVersion 
+            FROM ModelBundle:Location location 
+            JOIN ModelBundle:LocationVersion locationVersion WITH location.actual = locationVersion.id
+            WHERE location.id = :id');
+        $query->setParameter('id', $id);
+        $data = $query->getResult();
+        foreach($data as $d) if ($d instanceof Location) return $d;
+        return null;
+    }
     public function loadIndexed()
     {
         $em = $this->getEntityManager();
