@@ -84,9 +84,10 @@ class Offer
 		$this->actual->setLocation($value);
 		return $this;
 	}
-	public function setState($value)
+	public function setState($value, $author = null)
 	{
-		$this->actual->setState($value);
+		if ($value != $this->actual->getState())
+            $this->follow($author)->setState($value);
 		return $this;
 	}
 	public function setAsk($value, $author = null)
@@ -125,6 +126,10 @@ class Offer
 		$this->task = $task;
 		return $this;
 	}
+	public function isRemoved()
+	{
+		return ($this->removed_at != null);
+	}
 
 	/* follower */
 	private function follow(User $author = null)
@@ -132,5 +137,9 @@ class Offer
 		if ($this->actual->getId() != null)
 			$this->actual = $this->actual->follow($author);
 		return $this->actual;
+	}
+	public function remove()
+	{
+		$this->removed_at = new \DateTime("now");
 	}
 }

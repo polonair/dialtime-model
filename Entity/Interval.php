@@ -83,4 +83,9 @@ class Interval
         $now = ((date("N")-1)*24*60) - (date("H")*60) - date("i");
         return (($now > $this->getFrom()) && ($now > $this->getTo()));
     }
+    public function remove()
+    {
+        $this->removed_at = new \DateTime("now");
+        return $this;
+    }
 } 

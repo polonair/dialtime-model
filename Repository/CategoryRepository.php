@@ -10,6 +10,20 @@ use Doctrine\ORM\Query;
 
 class CategoryRepository extends EntityRepository
 {
+    public function loadChildrenFor($category)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('
+            SELECT category, categoryVersion 
+            FROM ModelBundle:Category category 
+            JOIN ModelBundle:CategoryVersion categoryVersion WITH category.actual = categoryVersion.id
+            WHERE categoryVersion.parent = :parent');
+        $query->setParameter('parent', $category);
+        $data = $query->getResult();
+        $result = [];
+        foreach($data as $d) if ($d instanceof Category) $result[] = $d;
+        return $result;
+    }
     public function loadOne($id)
     {
         $em = $this->getEntityManager();

@@ -19,7 +19,7 @@ class ScheduleRepository extends EntityRepository
 			FROM ModelBundle:Schedule schedule
 			JOIN ModelBundle:ScheduleVersion scheduleVersion WITH schedule.actual = scheduleVersion.id
 			JOIN ModelBundle:Interval interval WITH schedule.id = interval.schedule
-			WHERE scheduleVersion.owner = :owner AND schedule.id = :id");
+			WHERE scheduleVersion.owner = :owner AND schedule.id = :id AND interval.removed_at IS NULL");
 		$query->setParameter("owner", $master->getUser()->getId())->setParameter('id', $id);
 		$result = $query->getResult();
 		$schedule = null;
@@ -38,7 +38,7 @@ class ScheduleRepository extends EntityRepository
 			FROM ModelBundle:Schedule schedule
 			JOIN ModelBundle:ScheduleVersion scheduleVersion WITH schedule.actual = scheduleVersion.id
 			JOIN ModelBundle:Interval interval WITH schedule.id = interval.schedule
-			WHERE scheduleVersion.owner = :owner AND scheduleVersion.created_at > :from AND interval.created_at > :from");
+			WHERE scheduleVersion.owner = :owner AND (scheduleVersion.created_at > :from OR interval.created_at > :from)");
         $query
         	->setParameter('owner', $master->getUser()->getId())
         	->setParameter('from', (new \DateTime())->setTimestamp($time));

@@ -5,7 +5,7 @@ namespace Polonairs\Dialtime\ModelBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Polonairs\Dialtime\ModelBundle\Repository\AccountRepository")
  * @ORM\Table(name="accounts")
  */
 class Account

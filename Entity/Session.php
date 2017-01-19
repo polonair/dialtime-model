@@ -67,4 +67,9 @@ class Session
     {
     	return $this->owner;
     }
+    public function close()
+    {
+        $this->closed_at = new \DateTime("now");
+        return $this;
+    }
 }
