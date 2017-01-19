@@ -9,6 +9,20 @@ use Doctrine\ORM\Query;
 
 class LocationRepository extends EntityRepository
 {
+    public function loadChildrenFor($location)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('
+            SELECT location, locationVersion 
+            FROM ModelBundle:Location location 
+            JOIN ModelBundle:LocationVersion locationVersion WITH location.actual = locationVersion.id
+            WHERE locationVersion.parent = :parent');
+        $query->setParameter('parent', $location);
+        $data = $query->getResult();
+        $result = [];
+        foreach($data as $d) if ($d instanceof Location) $result[] = $d;
+        return $result;
+    }
     public function loadOne($id)
     {
         $em = $this->getEntityManager();

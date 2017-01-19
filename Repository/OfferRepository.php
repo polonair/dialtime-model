@@ -65,7 +65,7 @@ class OfferRepository extends EntityRepository
                 offerVersion
             FROM ModelBundle:Offer offer 
             JOIN ModelBundle:OfferVersion offerVersion WITH offer.actual = offerVersion.id
-            WHERE offerVersion.owner = :master AND offerVersion.created_at > :from');
+            WHERE offerVersion.owner = :master AND (offerVersion.created_at > :from OR offer.removed_at > :from)');
         $query->setParameter('master', $master)->setParameter('from', (new \DateTime())->setTimestamp($time));
         $data = $query->getResult();
         $result = [];
