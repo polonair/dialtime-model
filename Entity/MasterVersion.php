@@ -23,6 +23,11 @@ class MasterVersion
 	private $entity;
 
 	/** !required
+	 * @ORM\ManyToOne(targetEntity="Manager")
+	 */
+	private $manager;
+
+	/** !required
 	 * @ORM\ManyToOne(targetEntity="User")
 	 */
 	private $author;
@@ -41,5 +46,28 @@ class MasterVersion
 	{
 		$this->entity = $value;
 		return $this;
+	}
+	public function getId()
+	{
+		return $this->id;
+	}
+	public function getManager()
+	{
+		return $this->manager;
+	}
+	public function setManager(Manager $value)
+	{
+		$this->manager = $value;
+		return $this;
+	}
+
+	/* follower */
+	public function follow(User $author = null)
+	{
+		$follow = new MasterVersion();
+		$follow->manager = $this->manager;
+		$follow->entity = $this->entity;
+		$follow->author = $author;
+		return $follow;
 	}
 }

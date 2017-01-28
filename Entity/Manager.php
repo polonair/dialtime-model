@@ -7,10 +7,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 
 /**
- * @ORM\Entity(repositoryClass="Polonairs\Dialtime\ModelBundle\Repository\PartnerRepository")
- * @ORM\Table(name="partners")
+ * @ORM\Entity(repositoryClass="Polonairs\Dialtime\ModelBundle\Repository\ManagerRepository")
+ * @ORM\Table(name="managers")
  */
-class Partner implements UserInterface, EquatableInterface
+class Manager implements UserInterface, EquatableInterface
 {
 	/** !required
 	 * @ORM\Column(type="integer")
@@ -25,7 +25,7 @@ class Partner implements UserInterface, EquatableInterface
     public $user;
 
 	/** !required
-	 * @ORM\OneToOne(targetEntity="PartnerVersion", cascade={"persist"})
+	 * @ORM\OneToOne(targetEntity="ManagerVersion", cascade={"persist"})
 	 */
     public $actual;
 
@@ -41,7 +41,7 @@ class Partner implements UserInterface, EquatableInterface
 
     public function __construct()
     {
-    	$this->actual = new PartnerVersion();
+    	$this->actual = new ManagerVersion();
     	$this->actual->setEntity($this);
         $this->created_at = new \DateTime("now");
     }
@@ -53,16 +53,6 @@ class Partner implements UserInterface, EquatableInterface
     {
     	$this->user = $value;
     	return $this;
-    }
-    public function getManager()
-    {
-        return $this->actual->getManager();
-    }
-    public function setManager(Manager $value, $author = null)
-    {
-        if ($value != $this->actual->getManager())
-            $this->follow($author)->setManager($value);
-        return $this;
     }
     public function getUser()
     {
@@ -92,12 +82,5 @@ class Partner implements UserInterface, EquatableInterface
         if ($this->getSalt !== $user->getSalt()) return false;
         if ($this->getUsername !== $user->getUsername()) return false;
         return true;
-    }
-    
-    private function follow(User $author = null)
-    {
-        if ($this->actual->getId() != null)
-            $this->actual = $this->actual->follow($author);
-        return $this->actual;
     }
 }

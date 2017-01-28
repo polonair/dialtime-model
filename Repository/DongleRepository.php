@@ -5,12 +5,69 @@ namespace Polonairs\Dialtime\ModelBundle\Repository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Polonairs\Dialtime\ModelBundle\Entity\Dongle;
+use Polonairs\Dialtime\ModelBundle\Entity\DongleDemanding;
 use Polonairs\Dialtime\ModelBundle\Entity\Phone;
 use Polonairs\Dialtime\ModelBundle\Entity\Gate;
 use Polonairs\Dialtime\ModelBundle\Entity\Campaign;
 
 class DongleRepository extends EntityRepository
 {
+	public function loadAllSuggestedIds(DongleDemanding $entry)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery("
+			SELECT dongle, dongleVersion
+			FROM ModelBundle:Dongle dongle
+			JOIN ModelBundle:DongleVersion dongleVersion WITH dongle.actual = dongleVersion.id
+			WHERE dongleVersion.campaign IS NULL");
+		$data = $query->getResult();
+		$result = [];
+		foreach($data as $dongle) if ($dongle instanceof Dongle) $result[] = $dongle->getId();
+		return $result;
+	}
+	public function loadOneForManager($manager, $id)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery("
+			SELECT dongle, dongleVersion
+			FROM ModelBundle:Dongle dongle 
+			JOIN ModelBundle:DongleVersion dongleVersion WITH dongle.actual = dongleVersion.id		
+			WHERE dongle.id = :id")
+		->setParameter("id", $id);
+		$result = $query->getResult();
+		foreach($result as $r) if ($r instanceof Dongle) return $r;
+		return null;
+	}
+	public function loadOneForPartner($partner, $id)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery("
+			SELECT dongle, dongleVersion
+			FROM ModelBundle:Dongle dongle 
+			JOIN ModelBundle:DongleVersion dongleVersion WITH dongle.actual = dongleVersion.id
+			JOIN ModelBundle:Campaign campaign WITH dongleVersion.campaign = campaign.id
+			JOIN ModelBundle:CampaignVersion campaignVersion WITH campaign.actual = campaignVersion.id			
+			WHERE dongle.id = :id AND campaignVersion.owner = :owner")
+		->setParameter("id", $id)
+		->setParameter("owner", $partner);
+		$result = $query->getResult();
+		foreach($result as $r) if ($r instanceof Dongle) return $r;
+		return null;
+	}
+	public function loadAllIdsForCampaign($campaign)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery("
+			SELECT dongle, dongleVersion
+			FROM ModelBundle:Dongle dongle 
+			JOIN ModelBundle:DongleVersion dongleVersion WITH dongle.actual = dongleVersion.id
+			WHERE dongleVersion.campaign = :campaign");
+		$query->setParameter("campaign", $campaign);
+		$result = $query->getResult();
+		$dongles = [];
+		foreach($result as $r) if ($r instanceof Dongle) $dongles[] = $r->getId();
+		return $dongles;
+	}
 	public function loadAllForGate(Gate $gate)
 	{
 		$em = $this->getEntityManager();

@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Polonairs\Dialtime\ModelBundle\Entity\Partner;
+use Polonairs\Dialtime\ModelBundle\Entity\User;
 
 class PartnerRepository extends EntityRepository implements UserProviderInterface, UserLoaderInterface
 {
@@ -19,6 +20,37 @@ class PartnerRepository extends EntityRepository implements UserProviderInterfac
         $phone = str_replace(["+", "-", "(", ")", " ", ".", "/", "\\", "*"], "", $username);
         if (preg_match("#[78]?(9[0-9]{9})#", $phone, $matches)) return "7".$matches[1];
         return $username;
+    }
+    public function loadPartnerByUser(User $user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery("
+            SELECT partner
+            FROM ModelBundle:Partner partner
+            JOIN ModelBundle:PartnerVersion partnerVersion WITH partner.actual = partnerVersion.id
+            WHERE partner.user = :user");
+        $query->setParameter("user", $user);
+        $result = $query->getResult();
+        $partner = null;
+        foreach($result as $r) if ($r instanceof Partner) { $partner = $r; break; }
+        return $partner;
+    }
+    public function loadUser($username, $password)
+    {
+        $em = $this->getEntityManager();
+        $normalized = PartnerRepository::normalizeUsername($username);
+        $query = $em->createQuery("
+            SELECT partner, user, userVersion
+            FROM ModelBundle:Partner partner
+            JOIN ModelBundle:User user WITH partner.user = user.id
+            JOIN ModelBundle:UserVersion userVersion WITH user.actual = userVersion.id
+            WHERE userVersion.username = :name");
+        $query->setParameter("name", $normalized);
+        $result = $query->getResult();
+        $partner = null;
+        foreach($result as $r) if ($r instanceof Partner) { $partner = $r; break; }
+        if ($partner !== null && password_verify($password, $partner->getPassword())) return $partner;
+        return null;
     }
     public function loadUserByUsername($username)
     {

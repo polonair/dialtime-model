@@ -40,6 +40,7 @@ class TicketVersion
 	/* getters */
 	public function getId() { return $this->id; }
     public function getTheme() { return $this->theme; }
+    public function getClient() { return $this->client; }
     public function getState() { return $this->state; }    
 	public function getCreatedAt() { return $this->created_at; }
 

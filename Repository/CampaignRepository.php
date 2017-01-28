@@ -9,6 +9,36 @@ use Polonairs\Dialtime\ModelBundle\Entity\Campaign;
 
 class CampaignRepository extends EntityRepository
 {
+    public function loadOneForPartner($partner, $id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('
+            SELECT campaign, campaignVersion
+            FROM ModelBundle:Campaign campaign 
+            JOIN ModelBundle:CampaignVersion campaignVersion WITH campaign.actual = campaignVersion.id
+            WHERE campaignVersion.owner = :partner AND campaign.id = :id')
+        ->setParameter('partner', $partner)
+        ->setParameter('id', $id);
+        $data = $query->getResult();
+
+        foreach($data as $object) if ($object instanceof Campaign) return $object;
+
+        return null;
+    }
+    public function loadAllIdsForPartner($partner, $time)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('
+            SELECT campaign, campaignVersion
+            FROM ModelBundle:Campaign campaign 
+            JOIN ModelBundle:CampaignVersion campaignVersion WITH campaign.actual = campaignVersion.id
+            WHERE campaignVersion.owner = :partner AND (campaignVersion.created_at > :from OR campaign.removed_at > :from)');
+        $query->setParameter('partner', $partner)->setParameter('from', (new \DateTime())->setTimestamp($time));
+        $data = $query->getResult();
+        $result = [];
+        foreach($data as $object) if ($object instanceof Campaign) $result[] = $object->getId();
+        return $result;
+    }
     public function loadActive()
     {
         $em = $this->getEntityManager();
