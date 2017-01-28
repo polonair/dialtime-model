@@ -54,6 +54,16 @@ class Master implements UserInterface, EquatableInterface
     	$this->user = $value;
     	return $this;
     }
+    public function getManager()
+    {
+        return $this->actual->getManager();
+    }
+    public function setManager(Manager $value, $author = null)
+    {
+        if ($value != $this->actual->getManager())
+            $this->follow($author)->setManager($value);
+        return $this;
+    }
     public function getUser()
     {
         return $this->user;
@@ -82,5 +92,12 @@ class Master implements UserInterface, EquatableInterface
         if ($this->getSalt !== $user->getSalt()) return false;
         if ($this->getUsername !== $user->getUsername()) return false;
         return true;
+    }
+    
+    private function follow(User $author = null)
+    {
+        if ($this->actual->getId() != null)
+            $this->actual = $this->actual->follow($author);
+        return $this->actual;
     }
 }

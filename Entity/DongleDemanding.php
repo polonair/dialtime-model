@@ -92,4 +92,12 @@ class DongleDemanding
 	{
 		return $this->ticket;
 	}
+	public function getId()
+	{
+		return $this->id;
+	}
+	public function getDongle()
+	{
+		return $this->dongle;
+	}
 }
