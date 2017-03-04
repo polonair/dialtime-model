@@ -5,7 +5,7 @@ namespace Polonairs\Dialtime\ModelBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Polonairs\Dialtime\ModelBundle\Repository\TicketMessageRepository")
  * @ORM\Table(name="ticket_messages")
  */
 class TicketMessage

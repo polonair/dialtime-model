@@ -7,9 +7,49 @@ use Doctrine\ORM\Query;
 use Polonairs\Dialtime\ModelBundle\Entity\User;
 use Polonairs\Dialtime\ModelBundle\Entity\Ticket;
 use Polonairs\Dialtime\ModelBundle\Entity\Manager;
+use Polonairs\Dialtime\ModelBundle\Entity\Partner;
 
 class TicketRepository extends EntityRepository
 {
+    /*public function _loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT
+                FROM
+                JOIN
+                LEFT JOIN
+                WHERE
+                AND
+                GROUP BY
+                ORDER BY")
+            ->setParameter("partner", $partner)
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        return null;
+    }*/
+    public function loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT ticket
+                FROM ModelBundle:Ticket ticket
+                JOIN ModelBundle:TicketVersion ticketVersion WITH ticket.actual = ticketVersion.id
+                LEFT JOIN ModelBundle:TicketMessage message WITH ticket.id = message.ticket
+                WHERE ticketVersion.client = :user
+                    AND (ticketVersion.created_at > :time
+                        OR ticket.removed_at > :time
+                        OR message.created_at > :time)
+                GROUP BY ticket")
+            ->setParameter("user", $partner->getUser())
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        $result = [];
+        foreach ($data as $obj) if ($obj instanceof Ticket) $result[] = $obj->getId();
+        return $result;
+    }
 	public function loadOneForManager($manager, $id)
 	{
         $em = $this->getEntityManager();

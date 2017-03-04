@@ -7,10 +7,69 @@ use Doctrine\ORM\Query;
 use Polonairs\Dialtime\ModelBundle\Entity\Transaction;
 use Polonairs\Dialtime\ModelBundle\Entity\User;
 use Polonairs\Dialtime\ModelBundle\Entity\Master;
+use Polonairs\Dialtime\ModelBundle\Entity\Partner;
 use Polonairs\Dialtime\ModelBundle\Entity\TransactionEntry;
 
 class TransactionRepository extends EntityRepository
 {
+    /*public function _loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT
+                FROM
+                JOIN
+                LEFT JOIN
+                WHERE
+                AND
+                GROUP BY
+                ORDER BY")
+            ->setParameter("partner", $partner)
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        return null;
+    }*/
+    //loadAllIdsForPartner($partner, $request["data"]),
+    public function loadOneForPartner(Partner $partner, $id)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery("
+            SELECT transactionEntry, transaction, fromAccount, toAccount
+            FROM ModelBundle:TransactionEntry transactionEntry
+            JOIN ModelBundle:Transaction transaction WITH transactionEntry.transaction = transaction.id
+            JOIN ModelBundle:Account fromAccount WITH transactionEntry.acc_from = fromAccount.id
+            JOIN ModelBundle:Account toAccount WITH transactionEntry.acc_to = toAccount.id
+            WHERE (fromAccount.owner = :user OR toAccount.owner = :user) AND transactionEntry.id = :id");
+        $query->setParameter('user', $partner->getUser())->setParameter('id', $id);
+        $jobs = $query->getResult();
+        foreach ($jobs as $j) if ($j instanceof TransactionEntry) return $j;
+        return null;
+    }
+    public function loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT transactionEntry, transaction, fromAccount, toAccount
+                FROM ModelBundle:TransactionEntry transactionEntry
+                JOIN ModelBundle:Transaction transaction WITH transactionEntry.transaction = transaction.id
+                JOIN ModelBundle:Account fromAccount WITH transactionEntry.acc_from = fromAccount.id
+                JOIN ModelBundle:Account toAccount WITH transactionEntry.acc_to = toAccount.id
+                WHERE (fromAccount.owner = :user OR toAccount.owner = :user) 
+                    AND (transaction.open_at > :time 
+                        OR transaction.hold_at > :time
+                        OR transaction.close_at > :time
+                        OR transaction.cancel_at > :time)")
+            ->setParameter("user", $partner->getUser())
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        $result = [];
+        foreach ($data as $obj) if ($obj instanceof TransactionEntry) $result[] = $obj->getId();
+        return $result;
+
+    }
     public function loadOneForMaster(Master $master, $id)
     {
         $em = $this->getEntityManager();
