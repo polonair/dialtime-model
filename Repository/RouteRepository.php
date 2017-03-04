@@ -16,6 +16,47 @@ use Polonairs\Dialtime\ModelBundle\Entity\Offer;
 
 class RouteRepository extends EntityRepository
 {
+    /*public function _loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT
+                FROM
+                JOIN
+                LEFT JOIN
+                WHERE
+                AND
+                GROUP BY
+                ORDER BY")
+            ->setParameter("partner", $partner)
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        return null;
+    }*/
+    public function loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT route
+                FROM ModelBundle:Route route
+                JOIN ModelBundle:RouteVersion routeVersion WITH route.actual = routeVersion.id
+				JOIN ModelBundle:Task task WITH routeVersion.task = task.id 
+				JOIN ModelBundle:TaskVersion taskVersion WITH task.actual = taskVersion.id 
+				JOIN ModelBundle:Campaign campaign WITH taskVersion.campaign = campaign.id 
+				JOIN ModelBundle:CampaignVersion campaignVersion WITH campaign.actual = campaignVersion.id
+                WHERE campaignVersion.owner = :partner 
+                	AND (route.created_at > :time
+                		OR routeVersion.created_at > :time)
+                GROUP BY route")
+            ->setParameter("partner", $partner)
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        $result = [];
+        foreach ($data as $obj) if ($obj instanceof Route) $result[] = $obj->getId();
+        return $result;
+    }
 	public function loadOneForMaster(Master $master, $id)
 	{
         $em = $this->getEntityManager();

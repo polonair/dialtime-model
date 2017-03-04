@@ -9,6 +9,71 @@ use Polonairs\Dialtime\ModelBundle\Entity\Campaign;
 
 class CampaignRepository extends EntityRepository
 {
+    /*public function _loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT
+                FROM
+                JOIN
+                LEFT JOIN
+                WHERE
+                AND
+                GROUP BY
+                ORDER BY")
+            ->setParameter("partner", $partner)
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        return null;
+    }*/
+    public function loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT dongle, campaign
+                FROM ModelBundle:Dongle dongle
+                JOIN ModelBundle:DongleVersion dongleVersion WITH dongle.actual = dongleVersion.id
+                JOIN ModelBundle:Campaign campaign WITH dongleVersion.campaign = campaign.id
+                JOIN ModelBundle:CampaignVersion campaignVersion WITH campaign.actual = campaignVersion.id
+                WHERE dongleVersion.campaign IS NOT NULL
+                    AND campaignVersion.owner = :partner 
+                    AND (dongleVersion.created_at > :time 
+                        OR dongle.removed_at > :time
+                        OR campaign.removed_at > :time
+                        OR campaignVersion.created_at > :time)
+                GROUP BY campaign")
+            ->setParameter("partner", $partner)
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        $result = [];
+        foreach ($data as $obj) if ($obj instanceof Campaign) $result[] = $obj->getId();
+        dump($result);
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT campaign
+                FROM ModelBundle:Campaign campaign
+                JOIN ModelBundle:CampaignVersion campaignVersion WITH campaign.actual = campaignVersion.id
+                LEFT JOIN ModelBundle:DongleDemanding dongleDemanding WITH dongleDemanding.campaign = campaign.id
+                LEFT JOIN ModelBundle:Ticket ticket WITH dongleDemanding.ticket = ticket.id
+                WHERE campaignVersion.owner = :partner 
+                    AND (campaignVersion.created_at > :time 
+                        OR campaign.removed_at > :time
+                        OR dongleDemanding.resolved_at > :time
+                        OR ticket.created_at > :time
+                        OR campaign.removed_at > :time)
+                GROUP BY campaign")
+            ->setParameter("partner", $partner)
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        foreach ($data as $obj) if ($obj instanceof Campaign) $result[] = $obj->getId();
+        dump($result);
+        $result = array_values(array_unique($result, SORT_NUMERIC));
+        dump($result);
+        return  $result;
+    }
     public function loadOneForPartner($partner, $id)
     {
         $em = $this->getEntityManager();
@@ -25,7 +90,7 @@ class CampaignRepository extends EntityRepository
 
         return null;
     }
-    public function loadAllIdsForPartner($partner, $time)
+    public function _loadAllIdsForPartner($partner, $time)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery('

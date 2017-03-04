@@ -14,6 +14,24 @@ use Polonairs\Dialtime\ModelBundle\Entity\User;
 
 class PartnerRepository extends EntityRepository implements UserProviderInterface, UserLoaderInterface
 {
+    /*public function _loadAllIdsForPartner(Partner $partner, $time)
+    {
+        $data = $this
+            ->getEntityManager()
+            ->createQuery("
+                SELECT
+                FROM
+                JOIN
+                LEFT JOIN
+                WHERE
+                AND
+                GROUP BY
+                ORDER BY")
+            ->setParameter("partner", $partner)
+            ->setParameter("time", (new \DateTime())->setTimestamp($time))
+            ->getResult();
+        return null;
+    }*/
     private static function normalizeUsername($username)
     {
         if ($username === null) return null;
