@@ -52,6 +52,11 @@ class Ticket
 		$this->follow($author)->setClient($client);
 		return $this;
 	}
+	public function setState($state, User $author = null)
+	{
+		$this->follow($author)->setState($state);
+		return $this;
+	}
 
 	/* follower */
 	private function follow(User $author = null)

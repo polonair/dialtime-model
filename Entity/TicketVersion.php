@@ -55,6 +55,11 @@ class TicketVersion
 		$this->theme = $value;
 		return $this;
 	}
+	public function setState($state)
+	{
+		$this->state = $state;
+		return $this;
+	}
 	public function setClient(User $user = null)
 	{
 		$this->client = $user;
