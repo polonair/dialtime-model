@@ -58,7 +58,7 @@ class GateVersion
 	private $entity;
 
 	/** !required
-	 * @ORM\ManyToOne(targetEntity="Gate")
+	 * @ORM\ManyToOne(targetEntity="User")
 	 */
 	private $author;
 
