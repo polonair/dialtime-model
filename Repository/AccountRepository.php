@@ -25,7 +25,15 @@ class AccountRepository extends EntityRepository
     public function loadAllIdsForMaster(Master $master, $time)
     {
         $em = $this->getEntityManager();
-
+        $query = $em->createQuery("
+            SELECT account 
+            FROM ModelBundle:Account account
+            WHERE account.id = :id")
+        ->setParameter('id', $master->getUser()->getMainAccount());
+        $jobs = $query->getResult();
+        foreach ($jobs as $j) if ($j instanceof Account) return [ $j->getId() ];
+        return [];
+        /*$em = $this->getEntityManager();
         $query = $em->createQuery("
             SELECT transactionEntry, transaction, toAccount
             FROM ModelBundle:TransactionEntry transactionEntry
@@ -37,6 +45,6 @@ class AccountRepository extends EntityRepository
         ->setParameter('from', (new \DateTime())->setTimestamp($time));
         $jobs = $query->getResult();
         foreach ($jobs as $j) if ($j instanceof Account) return [ $j->getId() ];
-        return [];
+        return [];*/
     }
 }
