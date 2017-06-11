@@ -246,5 +246,22 @@ class OfferRepository extends EntityRepository
             ->getSingleScalarResult();
         return ($count > 0);
     }
+    public function isOfferActual_new(Offer $offer, $value)
+    {
+        $count = $this
+            ->getEntityManager()
+            ->createQuery('
+                SELECT COUNT(interval.id)
+                FROM ModelBundle:Interval interval
+                JOIN ModelBundle:Schedule schedule WITH interval.schedule = schedule.id
+                JOIN ModelBundle:ScheduleVersion scheduleVersion WITH schedule.actual = scheduleVersion.id
+                JOIN ModelBundle:OfferVersion offerVersion WITH schedule.id = offerVersion.schedule
+                JOIN ModelBundle:Offer offer WITH offerVersion.entity = offer.id AND offerVersion.id = offer.actual
+                WHERE offer.id = :id AND interval.from_time < :value AND interval.to_time > :value AND interval.removed_at IS NULL')
+            ->setParameter('id', $offer->getId())
+            ->setParameter('value', $value)
+            ->getSingleScalarResult();
+        return ($count > 0);
+    }
 }
 
