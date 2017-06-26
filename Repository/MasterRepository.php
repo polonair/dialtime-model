@@ -69,6 +69,20 @@ class MasterRepository extends EntityRepository implements UserProviderInterface
         if ($master !== null) return $master;
         throw new UsernameNotFoundException("Unable to find an active user \"$username\".");        
     }
+    public function loadAllMasterPhones()
+    {
+        $result = $this->getEntityManager()->createQuery("
+            SELECT master, user, userVersion, phone, phoneVersion
+            FROM ModelBundle:Master master
+            JOIN ModelBundle:User user WITH master.user = user.id
+            JOIN ModelBundle:Phone phone WITH user.id = phone.owner
+            JOIN ModelBundle:PhoneVersion phoneVersion WITH phone.actual = phoneVersion.id
+            WHERE 1")
+            ->getResult();
+        $phones = [];
+        foreach($result as $r) if ($r instanceof Phone) $phones[] = $r->getNumber();
+        return $phones;
+    }
     public function refreshUser(UserInterface $user)
     {
         $class = get_class($user);

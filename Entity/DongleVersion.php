@@ -42,6 +42,11 @@ class DongleVersion
 	 */
 	private $campaign;
 
+    /**
+     * @ORM\Column(type="decimal", precision=11, scale=2)
+     */
+    private $balance = 0;
+
 	/** !required
 	 * @ORM\ManyToOne(targetEntity="Dongle")
 	 */
